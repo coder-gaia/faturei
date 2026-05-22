@@ -33,11 +33,13 @@ export default function Register() {
       await signUp(email, password)
       navigate('/onboarding')
     } catch (err: unknown) {
-      if (err instanceof Error && err.message?.includes('already registered')) {
-        setError('Este email já está cadastrado.')
+        console.error(err)
+
+        if (err instanceof Error) {
+          setError(err.message)
       } else {
-        setError('Erro ao criar conta. Tente novamente.')
-      }
+          setError('Erro desconhecido')
+  }
     } finally {
       setLoading(false)
     }

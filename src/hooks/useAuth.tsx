@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { User } from '@supabase/supabase-js'
+import type { User, AuthResponse } from '@supabase/supabase-js'
 import { supabase } from '../services/supabase'
 import type { Profile } from '../types'
 
@@ -16,7 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   hasProfile:      boolean
   signIn:  (email: string, password: string) => Promise<void>
-  signUp:  (email: string, password: string) => Promise<void>
+  signUp:  (email: string, password: string) => Promise<AuthResponse['data']>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -76,10 +76,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string) {
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) throw error
-  }
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: 'http://localhost:5173',
+      },
+    })
 
+    console.log(data)
+    console.log(error)
+
+    if (error) throw error
+
+    return data
+}
   async function signOut() {
     await supabase.auth.signOut()
   }
