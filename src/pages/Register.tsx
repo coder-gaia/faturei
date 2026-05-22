@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/ui/Button'
 import { Input }  from '../components/ui/Input'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function Register() {
   const { signUp }  = useAuth()
@@ -11,6 +12,8 @@ export default function Register() {
   const [email,     setEmail]     = useState('')
   const [password,  setPassword]  = useState('')
   const [password2, setPassword2] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword2, setShowPassword2] = useState(false)
   const [error,     setError]     = useState('')
   const [loading,   setLoading]   = useState(false)
 
@@ -66,22 +69,54 @@ export default function Register() {
 
           <Input
             label="Senha"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             placeholder="Mínimo 6 caracteres"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
             autoComplete="new-password"
+            suffix={
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                color: 'var(--color-text-muted)',
+              }}
+              >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+            }
           />
 
           <Input
             label="Confirmar senha"
-            type="password"
+            type={showPassword2 ? 'text' : 'password'}
             placeholder="Repita a senha"
             value={password2}
             onChange={e => setPassword2(e.target.value)}
             required
             autoComplete="new-password"
+            suffix={
+              <button
+                type="button"
+                onClick={() => setShowPassword2(prev => !prev)}
+                style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              {showPassword2 ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            }
           />
 
           {error && (

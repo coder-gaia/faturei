@@ -27,18 +27,32 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         </label>
       )}
 
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      <div style={{ position: 'relative' }}>
         <input
           ref={ref}
           className={[
-            'form-input',
-            mono ? 'form-input--mono' : '',
-            error ? 'form-input--error' : '',
-            className,
+          'form-input',
+          mono ? 'form-input--mono' : '',
+          error ? 'form-input--error' : '',
+          className,
           ].join(' ')}
+          style={{
+            paddingRight: suffix ? '44px' : undefined,
+          }}
           {...props}
-        />
+          />
+        {suffix && (
+          <div
+            style={{
+              position: 'absolute',
+              right: 12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+            }}
+          >
         {suffix}
+        </div>
+        )}
       </div>
 
       {error && <span className="form-error">{error}</span>}

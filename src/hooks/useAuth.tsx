@@ -28,47 +28,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function fetchProfile(userId: string) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data ?? null)
+async function fetchProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle()
+
+  console.log('PROFILE:', data)
+  console.log('PROFILE ERROR:', error)
+
+  if (error) {
+    console.error(error)
+    setProfile(null)
+    return
   }
+
+  setProfile(data ?? null)
+}
 
   async function refreshProfile() {
     if (user) await fetchProfile(user.id)
   }
 
   useEffect(() => {
-    // Verifica sessão existente ao carregar
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false))
-      } else {
-        setLoading(false)
-      }
-    })
+    async function loadSession() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-    // Escuta mudanças de auth
+      setUser(session?.user ?? null)
+
+      if (session?.user) {
+        await fetchProfile(session.user.id)
+      } else {
+        setProfile(null)
+      }
+
+      setLoading(false)
+    }
+
+    loadSession()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        console.log('AUTH EVENT:', event)
+        console.log('SESSION:', session)
+
         setUser(session?.user ?? null)
 
         if (session?.user) {
           await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
+      } else {
+        setProfile(null)
       }
 
-    setLoading(false)
+      setLoading(false)
   }
 )
 
-    return () => subscription.unsubscribe()
-  }, [])
+  return () => {
+    subscription.unsubscribe()
+  }
+}, [])
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -91,8 +113,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return data
 }
+
   async function signOut() {
-    await supabase.auth.signOut()
+    console.log('logout start')
+
+    const { error } = await supabase.auth.signOut()
+
+    console.log('logout error:', error)
+
+    if (error) throw error
   }
 
   return (
