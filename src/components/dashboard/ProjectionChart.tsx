@@ -61,7 +61,7 @@ const tooltipFormatter: Formatter<ValueType, NameType> = (
             labelStyle={{ color: COLORS.gray1 }}
           />
           <ReferenceLine y={MEI.ANNUAL_LIMIT} stroke={COLORS.danger} strokeDasharray="4 3"
-            label={{ value: 'Limite R$ 81k', fill: COLORS.danger, fontSize: 11, position: 'insideTopRight' }}
+            label={{ value: 'Limite R$ 81k', fill: COLORS.danger, fontSize: 13, position: 'insideBottomRight' }}
           />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
             formatter={v => <span style={{ color: COLORS.gray1 }}>{v}</span>}

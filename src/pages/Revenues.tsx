@@ -120,6 +120,7 @@ export default function Revenues() {
 
       {/* Modal de edição */}
       <RevenueEditModal
+        key={editing?.id}
         revenue={editing}
         clients={clients ?? []}
         onClose={() => setEditing(null)}
