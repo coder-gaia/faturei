@@ -2,7 +2,7 @@
 
 Plataforma de gestão financeira para MEIs brasileiros. Controle de faturamento, DAS e projeção de desenquadramento — tudo em um dashboard limpo e intuitivo.
 
-🔗 **[Demo ao vivo](https://faturei.vercel.app)** — substitua pela URL real após o deploy
+🔗 **[Demo ao vivo](https://faturei-nu.vercel.app/)**
 
 ---
 
