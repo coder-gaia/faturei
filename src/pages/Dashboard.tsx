@@ -33,7 +33,7 @@ export default function Dashboard() {
     <div>
       <div className="page-header">
         <h1 className="page-title">
-          Olá, {profile?.full_name?.split(' ')[0]} 👋
+          Olá, {profile?.full_name?.split(' ')[0]}!
         </h1>
         <p className="page-subtitle">
           {profile?.business_name ?? 'Seu painel financeiro MEI'}

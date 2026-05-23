@@ -311,7 +311,8 @@ export default function Revenues() {
               <div
                 style={{
                   display: 'flex',
-                  gap: 4,
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
                 {revenue.status ===

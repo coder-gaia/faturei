@@ -55,7 +55,7 @@ export default function Landing() {
           </h1>
           <p className="landing-subtitle">
             Acompanhe receitas, controle o DAS e saiba exatamente quanto
-            ainda pode faturar no ano — sem risco de desenquadramento.
+            ainda pode faturar no ano sem risco de desenquadramento.
           </p>
           <div className="landing-cta-group">
             <Link to="/cadastro" className="btn btn--primary btn--lg">

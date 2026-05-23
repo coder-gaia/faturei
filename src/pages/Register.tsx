@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/ui/Button'
 import { Input }  from '../components/ui/Input'
 import { Eye, EyeOff } from 'lucide-react'
+import { supabase } from '../services/supabase'
 
 export default function Register() {
   const { signUp }  = useAuth()
@@ -17,36 +18,50 @@ export default function Register() {
   const [error,     setError]     = useState('')
   const [loading,   setLoading]   = useState(false)
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError('')
+async function handleSubmit(e: FormEvent) {
+  e.preventDefault()
+  setError('')
 
-    if (password !== password2) {
-      setError('As senhas não coincidem.')
-      return
-    }
-
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.')
-      return
-    }
-
-    setLoading(true)
-    try {
-      await signUp(email, password)
-      navigate('/onboarding')
-    } catch (err: unknown) {
-        console.error(err)
-
-        if (err instanceof Error) {
-          setError(err.message)
-      } else {
-          setError('Erro desconhecido')
+  if (password !== password2) {
+    setError('As senhas não coincidem.')
+    return
   }
-    } finally {
-      setLoading(false)
-    }
+
+  if (password.length < 6) {
+    setError('A senha deve ter pelo menos 6 caracteres.')
+    return
   }
+
+  setLoading(true)
+
+  try {
+    // cria usuário
+    await signUp(email, password)
+
+    // login automático
+    const { error: loginError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+    if (loginError) {
+      throw loginError
+    }
+
+    navigate('/onboarding')
+  } catch (err: unknown) {
+    console.error(err)
+
+    if (err instanceof Error) {
+      setError(err.message)
+    } else {
+      setError('Erro desconhecido')
+    }
+  } finally {
+    setLoading(false)
+  }
+}
 
   return (
     <div className="auth-page">

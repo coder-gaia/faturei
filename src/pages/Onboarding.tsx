@@ -46,42 +46,70 @@ export default function Onboarding() {
     setStep(s => s + 1)
   }
 
-  async function finish() {
-    if (!user) return
-    setSaving(true)
-    setError('')
-    try {
-      const cnpjClean = cleanCNPJ(data.cnpj)
+async function finish() {
+  console.log('FINISH START')
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id:            user.id,
-          full_name:     data.full_name.trim(),
-          business_name: data.business_name.trim() || null,
-          cnpj:          cnpjClean || null,
-          activity_type: data.activity_type,
-          das_value:     MEI.ACTIVITY_TYPES[data.activity_type].das,
-        })
-
-      if (profileError) throw profileError
-
-      const dasRecords = generateYearlyDAS(user.id, data.activity_type)
-      const { error: dasError } = await supabase
-        .from('das_payments')
-        .upsert(dasRecords, { onConflict: 'user_id,year,month', ignoreDuplicates: true })
-
-      if (dasError) throw dasError
-
-      await refreshProfile()
-      navigate('/app')
-    } catch (err: unknown) {
-      setError('Erro ao salvar. Tente novamente.')
-      console.error(err)
-    } finally {
-      setSaving(false)
-    }
+  if (!user) {
+    setError('Sessão inválida. Faça login novamente.')
+    return
   }
+
+  setSaving(true)
+  setError('')
+
+  try {
+    const cnpjClean = cleanCNPJ(data.cnpj)
+
+    console.log('UPSERT PROFILE')
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        full_name: data.full_name.trim(),
+        business_name: data.business_name.trim() || null,
+        cnpj: cnpjClean || null,
+        activity_type: data.activity_type,
+        das_value:
+          MEI.ACTIVITY_TYPES[data.activity_type].das,
+      })
+
+    console.log('PROFILE RESULT', profileError)
+
+    if (profileError) throw profileError
+
+    const dasRecords = generateYearlyDAS(
+      user.id,
+      data.activity_type,
+    )
+
+    console.log('UPSERT DAS')
+
+    const { error: dasError } = await supabase
+      .from('das_payments')
+      .upsert(dasRecords, {
+        onConflict: 'user_id,year,month',
+        ignoreDuplicates: true,
+      })
+
+    console.log('DAS RESULT', dasError)
+
+    if (dasError) throw dasError
+
+    console.log('REFRESH PROFILE')
+
+    await refreshProfile()
+
+    console.log('NAVIGATE')
+
+    navigate('/app')
+  } catch (err) {
+    console.error('FINISH ERROR', err)
+    setError('Erro ao salvar. Tente novamente.')
+  } finally {
+    setSaving(false)
+  }
+}
 
   return (
     <div className="onboarding-page">

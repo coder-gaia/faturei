@@ -505,8 +505,13 @@ select.form-input {
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+
+  width: fit-content;
+
   gap: 4px;
   padding: 3px 10px;
+
   border-radius: 99px;
   font-size: 12px;
   font-weight: 600;
@@ -1104,14 +1109,18 @@ select.form-input {
 
 .landing-cta-group {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
+
+  margin-top: 8px;
+  width: 100%;
 }
 
 .landing-cta-hint {
   font-size: 13px;
   color: var(--color-gray-2);
+  white-space: nowrap;
 }
 
 .demo-banner {
@@ -1345,7 +1354,16 @@ select.form-input {
 
 /* ── Revenues table grid ────────────────────────────────────── */
 .revenues-grid {
-  grid-template-columns: 2fr 1.5fr 1fr 1fr 100px 60px;
+  grid-template-columns:
+    2.2fr
+    1.7fr
+    0.8fr
+    0.8fr
+    0.55fr
+    0.35fr;
+
+  column-gap: 12px;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
