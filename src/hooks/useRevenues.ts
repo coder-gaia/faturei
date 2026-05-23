@@ -60,3 +60,20 @@ export function useRevenues() {
 
   return { ...query, create, markReceived, remove }
 }
+
+export function useRevenueUpdate() {
+  const { user } = useAuth()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<{ client_id: string | null; value: number; due_date: string | null; description: string; nf_number: string | null }> }) => {
+      const { error } = await supabase
+        .from('revenues')
+        .update(data)
+        .eq('id', id)
+        .eq('user_id', user!.id)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['revenues'] }),
+  })
+}

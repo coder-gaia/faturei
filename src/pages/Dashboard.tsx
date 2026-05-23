@@ -8,67 +8,53 @@ import { SafeZoneCard } from '../components/dashboard/SafeZoneCard'
 import { DASStatusCard } from '../components/dashboard/DASStatusCard'
 import { ProjectionChart } from '../components/dashboard/ProjectionChart'
 import { MonthlyBarChart } from '../components/dashboard/MonthlyBarChart'
-import { Spinner } from '../components/ui/Spinner'
+import { SmartAlerts } from '../components/dashboard/SmartAlerts'
+import { DashboardSkeleton } from '../components/ui/Skeleton'
 import { formatBRL } from '../utils/formatters'
 
 export default function Dashboard() {
-  const { profile } = useAuth()
-  const navigate    = useNavigate()
-  const { data: revenues, isLoading: loadingRevenues } = useRevenues()
-  const { data: dasPayments, isLoading: loadingDAS }   = useDAS()
+  const { profile }  = useAuth()
+  const navigate     = useNavigate()
+  const { data: revenues,    isLoading: loadingR } = useRevenues()
+  const { data: dasPayments, isLoading: loadingD } = useDAS()
   const projection = useProjection(revenues)
 
-  if (loadingRevenues || loadingDAS) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
-        <Spinner size="lg" />
-      </div>
-    )
-  }
+  if (loadingR || loadingD) return <DashboardSkeleton />
 
-  const pendingRevenues  = revenues?.filter(r => r.status === 'pending') ?? []
-  const pendingTotal     = pendingRevenues.reduce((s, r) => s + r.value, 0)
+  const pendingTotal = revenues?.filter(r => r.status === 'pending').reduce((s, r) => s + r.value, 0) ?? 0
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">
-          Olá, {profile?.full_name?.split(' ')[0]}!
-        </h1>
-        <p className="page-subtitle">
-          {profile?.business_name ?? 'Seu painel financeiro MEI'}
-        </p>
+        <h1 className="page-title">Olá, {profile?.full_name?.split(' ')[0]} 👋</h1>
+        <p className="page-subtitle">{profile?.business_name ?? 'Seu painel financeiro MEI'}</p>
       </div>
 
-      {/* Métricas rápidas */}
+      <SmartAlerts
+        revenues={revenues ?? []}
+        das={dasPayments ?? []}
+        projection={projection}
+      />
+
       <div className="grid-4" style={{ marginBottom: 20 }}>
         <div className="card">
           <p className="card-title">Receitas recebidas</p>
-          <p className="card-value" style={{ fontSize: 22 }}>
-            {formatBRL(projection.totalReceived)}
-          </p>
+          <p className="card-value" style={{ fontSize: 22 }}>{formatBRL(projection.totalReceived)}</p>
         </div>
         <div className="card">
           <p className="card-title">A receber</p>
-          <p className="card-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>
-            {formatBRL(pendingTotal)}
-          </p>
+          <p className="card-value" style={{ fontSize: 22, color: 'var(--color-warning)' }}>{formatBRL(pendingTotal)}</p>
         </div>
         <div className="card">
           <p className="card-title">Lançamentos</p>
-          <p className="card-value" style={{ fontSize: 22 }}>
-            {revenues?.length ?? 0}
-          </p>
+          <p className="card-value" style={{ fontSize: 22 }}>{revenues?.length ?? 0}</p>
         </div>
         <div className="card">
           <p className="card-title">Média mensal</p>
-          <p className="card-value" style={{ fontSize: 22 }}>
-            {formatBRL(projection.monthlyAverage)}
-          </p>
+          <p className="card-value" style={{ fontSize: 22 }}>{formatBRL(projection.monthlyAverage)}</p>
         </div>
       </div>
 
-      {/* Cards principais */}
       <div className="grid-3" style={{ marginBottom: 20 }}>
         <RevenueProgressBar projection={projection} />
         <SafeZoneCard projection={projection} />
@@ -77,7 +63,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Gráficos */}
       <div className="dashboard-charts">
         <ProjectionChart projection={projection} />
         <MonthlyBarChart projection={projection} />
