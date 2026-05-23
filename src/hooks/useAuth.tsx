@@ -16,41 +16,33 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   loading: boolean
-
   isAuthenticated: boolean
   hasProfile: boolean
 
   signIn: (
     email: string,
-    password: string,
+    password: string
   ) => Promise<void>
 
   signUp: (
     email: string,
-    password: string,
+    password: string
   ) => Promise<void>
 
   signOut: () => Promise<void>
-
   refreshProfile: () => Promise<void>
 }
 
-const AuthContext =
-  createContext<AuthContextType | null>(null)
+const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({
   children,
 }: {
   children: ReactNode
 }) {
-  const [user, setUser] =
-    useState<User | null>(null)
-
-  const [profile, setProfile] =
-    useState<Profile | null>(null)
-
-  const [loading, setLoading] =
-    useState(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [loading, setLoading] = useState(true)
 
   async function fetchProfile(userId: string) {
     try {
@@ -61,25 +53,20 @@ export function AuthProvider({
         .maybeSingle()
 
       if (error) {
-        console.error(
-          'PROFILE FETCH ERROR:',
-          error,
-        )
-
+        console.error('PROFILE ERROR:', error)
         setProfile(null)
         return
       }
 
       setProfile(data ?? null)
     } catch (err) {
-      console.error(err)
+      console.error('FETCH PROFILE ERROR:', err)
       setProfile(null)
     }
   }
 
   async function refreshProfile() {
     if (!user) return
-
     await fetchProfile(user.id)
   }
 
@@ -88,26 +75,23 @@ export function AuthProvider({
 
     async function initialize() {
       try {
-        setLoading(true)
-
         const {
           data: { session },
         } = await supabase.auth.getSession()
 
         if (!mounted) return
 
-        const currentUser =
-          session?.user ?? null
+        const currentUser = session?.user ?? null
 
         setUser(currentUser)
 
         if (currentUser) {
-          await fetchProfile(currentUser.id)
+          fetchProfile(currentUser.id)
         } else {
           setProfile(null)
         }
       } catch (err) {
-        console.error(err)
+        console.error('INIT ERROR:', err)
       } finally {
         if (mounted) {
           setLoading(false)
@@ -123,25 +107,16 @@ export function AuthProvider({
       async (_event, session) => {
         if (!mounted) return
 
-        const currentUser =
-          session?.user ?? null
+        const currentUser = session?.user ?? null
 
         setUser(currentUser)
 
-        try {
-          if (currentUser) {
-            await fetchProfile(currentUser.id)
-          } else {
-            setProfile(null)
-          }
-        } catch (err) {
-          console.error(err)
-        } finally {
-          if (mounted) {
-            setLoading(false)
-          }
+        if (currentUser) {
+          fetchProfile(currentUser.id)
+        } else {
+          setProfile(null)
         }
-      },
+      }
     )
 
     return () => {
@@ -152,7 +127,7 @@ export function AuthProvider({
 
   async function signIn(
     email: string,
-    password: string,
+    password: string
   ) {
     const { error } =
       await supabase.auth.signInWithPassword({
@@ -165,7 +140,7 @@ export function AuthProvider({
 
   async function signUp(
     email: string,
-    password: string,
+    password: string
   ) {
     const { error } =
       await supabase.auth.signUp({
@@ -194,9 +169,7 @@ export function AuthProvider({
         loading,
 
         isAuthenticated: !!user,
-
-        hasProfile:
-          !!profile?.activity_type,
+        hasProfile: !!profile?.activity_type,
 
         signIn,
         signUp,
@@ -214,7 +187,7 @@ export function useAuth() {
 
   if (!ctx) {
     throw new Error(
-      'useAuth deve ser usado dentro de AuthProvider',
+      'useAuth deve ser usado dentro de AuthProvider'
     )
   }
 
