@@ -1,5 +1,4 @@
 import { MEI, type ActivityType } from '../constants/mei'
-import { formatDate } from './formatters'
 
 /**
  * Retorna o valor do DAS para um tipo de atividade.
