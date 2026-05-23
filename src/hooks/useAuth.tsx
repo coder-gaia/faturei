@@ -86,7 +86,7 @@ export function AuthProvider({
         setUser(currentUser)
 
         if (currentUser) {
-          fetchProfile(currentUser.id)
+          await fetchProfile(currentUser.id)
         } else {
           setProfile(null)
         }
@@ -112,7 +112,7 @@ export function AuthProvider({
         setUser(currentUser)
 
         if (currentUser) {
-          fetchProfile(currentUser.id)
+          await fetchProfile(currentUser.id)
         } else {
           setProfile(null)
         }
@@ -169,7 +169,11 @@ export function AuthProvider({
         loading,
 
         isAuthenticated: !!user,
-        hasProfile: !!profile?.activity_type,
+
+        hasProfile:
+          !!profile &&
+          !!profile.full_name &&
+          !!profile.activity_type,
 
         signIn,
         signUp,
