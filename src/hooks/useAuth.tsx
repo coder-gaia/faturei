@@ -1,14 +1,5 @@
-/* eslint-disable react-refresh/only-export-components */
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react'
-
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
-
 import { supabase } from '../services/supabase'
 import type { Profile } from '../types'
 
@@ -18,102 +9,60 @@ interface AuthContextType {
   loading: boolean
   isAuthenticated: boolean
   hasProfile: boolean
-
-  signIn: (
-    email: string,
-    password: string
-  ) => Promise<void>
-
-  signUp: (
-    email: string,
-    password: string
-  ) => Promise<void>
-
+  signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-export function AuthProvider({
-  children,
-}: {
-  children: ReactNode
-}) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function fetchProfile(userId: string) {
+  async function fetchProfileData(userId: string) {
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle()
+        .single()
 
-      if (error) {
-        console.error('PROFILE ERROR:', error)
-        setProfile(null)
-        return
-      }
-
-      setProfile(data ?? null)
-    } catch (err) {
-      console.error('FETCH PROFILE ERROR:', err)
-      setProfile(null)
+      if (error && error.code !== 'PGRST116') return null
+      return data || null
+    } catch {
+      return null
     }
   }
 
   async function refreshProfile() {
     if (!user) return
-    await fetchProfile(user.id)
+    const p = await fetchProfileData(user.id)
+    setProfile(p)
   }
 
   useEffect(() => {
     let mounted = true
 
-    async function initialize() {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-
-        if (!mounted) return
-
-        const currentUser = session?.user ?? null
-
-        setUser(currentUser)
-
-        if (currentUser) {
-          await fetchProfile(currentUser.id)
-        } else {
-          setProfile(null)
-        }
-      } catch (err) {
-        console.error('INIT ERROR:', err)
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        if (mounted) setUser(session.user)
+        const p = await fetchProfileData(session.user.id)
+        if (mounted) setProfile(p)
       }
-    }
+      if (mounted) setLoading(false)
+    })
 
-    initialize()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
         if (!mounted) return
-
-        const currentUser = session?.user ?? null
-
-        setUser(currentUser)
-
-        if (currentUser) {
-          await fetchProfile(currentUser.id)
-        } else {
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setUser(session?.user || null)
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
           setProfile(null)
         }
       }
@@ -125,75 +74,45 @@ export function AuthProvider({
     }
   }, [])
 
-  async function signIn(
-    email: string,
-    password: string
-  ) {
-    const { error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
+  async function signIn(email: string, password: string) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    
+    if (data.session?.user) {
+      setUser(data.session.user)
+      const p = await fetchProfileData(data.session.user.id)
+      setProfile(p)
+    }
   }
 
-  async function signUp(
-    email: string,
-    password: string
-  ) {
-    const { error } =
-      await supabase.auth.signUp({
-        email,
-        password,
-      })
-
+  async function signUp(email: string, password: string) {
+    const { error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
   }
 
   async function signOut() {
-    const { error } =
-      await supabase.auth.signOut()
-
-    if (error) throw error
-
     setUser(null)
     setProfile(null)
+    await supabase.auth.signOut()
   }
 
+  const hasProfile = !!profile && !!profile.full_name
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        loading,
-
-        isAuthenticated: !!user,
-
-        hasProfile:
-          !!profile &&
-          !!profile.full_name &&
-          !!profile.activity_type,
-
-        signIn,
-        signUp,
-        signOut,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, profile, loading,
+      isAuthenticated: !!user,
+      hasProfile,
+      signIn, signUp, signOut, refreshProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext)
-
-  if (!ctx) {
-    throw new Error(
-      'useAuth deve ser usado dentro de AuthProvider'
-    )
-  }
-
+  if (!ctx) throw new Error('useAuth deve ser usado dentro de AuthProvider')
   return ctx
 }

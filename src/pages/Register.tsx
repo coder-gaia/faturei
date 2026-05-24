@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/ui/Button'
 import { Input }  from '../components/ui/Input'
 import { Eye, EyeOff } from 'lucide-react'
-import { supabase } from '../services/supabase'
+// import { supabase } from '../services/supabase'
 
 export default function Register() {
   const { signUp }  = useAuth()
@@ -35,31 +35,18 @@ async function handleSubmit(e: FormEvent) {
   setLoading(true)
 
   try {
-    // cria usuário
     await signUp(email, password)
-
-    // login automático
-    const { error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-    if (loginError) {
-      throw loginError
-    }
-
+    
     navigate('/onboarding')
   } catch (err: unknown) {
     console.error(err)
-
     if (err instanceof Error) {
       setError(err.message)
     } else {
       setError('Erro desconhecido')
     }
   } finally {
-    setLoading(false)
+    setLoading(false) 
   }
 }
 

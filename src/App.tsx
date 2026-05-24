@@ -25,10 +25,29 @@ const queryClient = new QueryClient({
 })
 
 function ProtectedRoute() {
-  const { isAuthenticated, loading, hasProfile } = useAuth()
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><DashboardSkeleton /></div>
-  if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (!hasProfile)      return <Navigate to="/onboarding" replace />
+  const { isAuthenticated, loading, profile } = useAuth()
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+        <DashboardSkeleton />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!profile || !profile.full_name) {
+    return <Navigate to="/onboarding" replace />
+  }
+
   return <Outlet />
 }
 
